@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fairfax County Biodiversity Tracker</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css" />
+    <!-- Load map dependencies first -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" defer></script>
+    <script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js" defer></script>
+    <!-- Load Chart.js after map scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
+    <!-- Load our script last -->
+    <script src="script.js" defer></script>
+</head>
+<body>
+    <header>
+        <div class="header-content">
+            <h1>Pubscience Biodiversity Dashboard</h1>
+            <p class="author">Reconstructed by<a href="https://www.linkedin.com/in/christian-obi-9a693326a/" target="_blank">Obi Christian</a></p>
+            <div class="header-buttons">
+                <button id="guideToggle" class="help-button">
+                    <span>ℹ️</span> Guide & Resources
+                </button>
+            </div>
+        </div>
+        <div id="guidePanel" class="help-panel">
+            <div class="guide-content">
+                <div class="guide-section">
+                    <h3>How to Use This Tool</h3>
+                    <div class="help-grid">
+                        <div class="help-item">
+                            <span>🔍</span>
+                            <p>Search by species name or filter by category</p>
+                        </div>
+                        <div class="help-item">
+                            <span>📅</span>
+                            <p>Select year and season to see wildlife patterns</p>
+                        </div>
+                        <div class="help-item">
+                            <span>📸</span>
+                            <p>Click photos to see detailed sightings</p>
+                        </div>
+                        <div class="help-item">
+                            <span>📊</span>
+                            <p>View statistics and trends in the side panel</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="guide-section">
+                    <h3>Credits & Resources</h3>
+                    <div class="credits-section">
+                        <p>This project draws upon data and resources from the following sources:</p>
+                        <ul>
+                            <li><strong>iNaturalist</strong>: Observational data is utilized and credited in individual map popups.</li>
+                            <li><strong>U.S. Fish and Wildlife Service's ECOS</strong>: Reference for protected species listings.</li>
+                            <li><strong>Invasive Species Data</strong>: Sourced from <a href="https://www.fairfaxcounty.gov/publicworks/invasive-species" target="_blank">Fairfax County Public Works</a>, <a href="https://www.invasivespeciesva.org/species" target="_blank">Virginia Invasive Species Council</a>, and <a href="https://www.dcr.virginia.gov/natural-heritage/invspinfo" target="_blank">Virginia Department of Conservation and Recreation</a>.</li>
+                            <li><strong>Pollinator Data</strong>: Identified by filtering observations of known pollinating species genera.</li>
+                            <li><strong>Geospatial Data</strong>: Filtered using <a href="https://data-fairfaxcountygis.opendata.arcgis.com/datasets/Fairfaxcountygis::fairfax-county-boundary/explore" target="_blank">Fairfax County Boundary dataset</a>.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <div class="dashboard-controls">
+            <!-- Simplified filters with clear labels -->
+            <div class="filter-group">
+                <label for="taxonomicFilter">What are you looking for?</label>
+                <select id="taxonomicFilter">
+                    <option value="all">All Wildlife</option>
+                    <!-- Birds -->
+                    <optgroup label="Birds (Aves)">
+                        <option value="Aves-waterfowl">Waterfowl & Waterbirds</option>
+                        <option value="Aves-raptors">Birds of Prey</option>
+                        <option value="Aves-songbirds">Songbirds</option>
+                        <option value="Aves-woodpeckers">Woodpeckers</option>
+                        <option value="Aves-all">All Birds</option> <!-- Change to All Birds -->
+                    </optgroup>
+                    <!-- Mammals -->
+                    <optgroup label="Mammals (Mammalia)">
+                        <option value="Mammalia-carnivora">Carnivores (Fox, Coyote, etc.)</option>
+                        <option value="Mammalia-rodentia">Rodents & Small Mammals</option>
+                        <option value="Mammalia-cervidae">Deer Family</option>
+                        <option value="Mammalia-chiroptera">Bats</option>
+                        <option value="Mammalia-all">All Mammals</option> <!-- Change to All Mammals -->
+                    </optgroup>
+                    <!-- Plants -->
+                    <optgroup label="Plants (Plantae)">
+                        <option value="Plantae-trees">Trees</option>
+                        <option value="Plantae-flowers">Flowering Plants</option>
+                        <option value="Plantae-ferns">Ferns & Allies</option>
+                        <option value="Plantae-grasses">Grasses & Sedges</option>
+                        <option value="Plantae-all">All Plants</option> <!-- Change to All Plants -->
+                    </optgroup>
+                    <!-- Reptiles -->
+                    <optgroup label="Reptiles (Reptilia)">
+                        <option value="Reptilia-snakes">Snakes</option>
+                        <option value="Reptilia-turtles">Turtles</option>
+                        <option value="Reptilia-lizards">Lizards</option>
+                        <option value="Reptilia-all">All Reptiles</option> <!-- Change to All Reptiles -->
+                    </optgroup>
+                    <!-- Amphibians -->
+                    <optgroup label="Amphibians (Amphibia)">
+                        <option value="Amphibia-frogs">Frogs & Toads</option>
+                        <option value="Amphibia-salamanders">Salamanders</option>
+                        <option value="Amphibia-all">All Amphibians</option> <!-- Change to All Amphibians -->
+                    </optgroup>
+                    <!-- Insects -->
+                    <optgroup label="Insects (Insecta)">
+                        <option value="Insecta-lepidoptera">Butterflies & Moths</option>
+                        <option value="Insecta-hymenoptera">Bees, Wasps & Ants</option>
+                        <option value="Insecta-coleoptera">Beetles</option>
+                        <option value="Insecta-odonata">Dragonflies & Damselflies</option>
+                        <option value="Insecta-all">All Insects</option> <!-- Change to All Insects -->
+                    </optgroup>
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label for="yearFilter">From which year?</label>
+                <select id="yearFilter">
+                    <!-- populated via JavaScript -->
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label>Which season?</label>
+                <div class="season-buttons">
+                    <button data-season="all" class="active">🗓️ All Seasons</button>
+                    <button data-season="spring">🌱 Spring</button>
+                    <button data-season="summer">☀️ Summer</button>
+                    <button data-season="fall">🍂 Fall</button>
+                    <button data-season="winter">❄️ Winter</button>
+                </div>
+            </div>
+
+            <!-- Modify filter controls section -->
+            <div class="filter-group">
+                <label for="speciesSearch">Which species?</label>
+                <div class="search-wrapper">
+                    <input type="text" id="speciesSearch" list="speciesOptions" placeholder="e.g. Cardinal, American Robin">
+                    <datalist id="speciesOptions"></datalist>
+                    <button id="resetFilters" class="filter-button reset-button">
+                        🔄 Reset All Filters
+                    </button>
+                </div>
+            </div>
+
+            <div class="quick-filters">
+                <button id="invasiveFilter" class="filter-button warning">
+                    ⚠️ Invasive Species
+                </button>
+                <button id="pollinatorFilter" class="filter-button pollinator">
+                    🐝 Pollinators
+                </button>
+                <button id="protectedFilter" class="filter-button protected">
+                    🛡️ Protected Species
+                </button>
+            </div>
+        </div>
+
+        <!-- Reorganized layout -->
+        <div class="dashboard-grid">
+            <!-- Map takes primary focus -->
+            <div class="map-section">
+                <div id="map"></div>
+            </div>
+
+            <!-- Recent sightings below map -->
+            <div class="recent-sightings-section">
+                <div id="recentObservations"></div>
+            </div>
+
+            <!-- Stats section on the right -->
+            <div class="stats-section">
+                <div class="stats-panel">
+                    <div id="biodiversityStats"></div>
+                    <div id="temporalChart"></div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+</body>
+</html>
