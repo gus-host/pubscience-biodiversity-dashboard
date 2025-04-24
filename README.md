@@ -53,8 +53,8 @@ I strongly recommend you run the commands for installations and running of the s
 
 1. **Clone & Enter Directory (if running locally)**  
    ```bash
-   git clone https://github.com/jandreanalytics/FFX-County-Urban-Wildlife-Dashboard-.git
-   cd FFX-County-Urban-Wildlife-Dashboard-
+   git clone https://github.com/gus-host/pubscience-biodiversity-dashboard.git
+   cd pubscience-biodiversity-dashboard
    
 2. **Installing dependencies**  
    ```bash
